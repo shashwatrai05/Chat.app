@@ -4,10 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../chat/message_bubble.dart';
 
 class Messages extends StatelessWidget {
+
+  Future<User?> getCurrentUser() async {
+    final user = await FirebaseAuth.instance.currentUser;
+    return user;
+  }
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<User?>(
-  future: FirebaseAuth.instance.currentUser! ,
+  future: getCurrentUser(),
       builder: (ctx, futureSnapshot) {
         if (futureSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -35,7 +40,7 @@ class Messages extends StatelessWidget {
                 itemCount: chatDocs.length,
                 itemBuilder: (ctx, index) => MessageBubble(
                   chatDocs[index]['text'],
-                  chatDocs[index]['username'],
+                 chatDocs[index]['username'],
                   chatDocs[index]['userId'] == futureSnapshot.data?.uid,
                   key: ValueKey(chatDocs[index].id),
                 ),

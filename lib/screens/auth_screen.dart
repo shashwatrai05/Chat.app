@@ -34,7 +34,7 @@ class _AuthScreenState extends State<AuthScreen> {
             email: email, password: password);
 
            await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-              ' username': userName,
+              'username': userName,
               'email': email
             });
       }
