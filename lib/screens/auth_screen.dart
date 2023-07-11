@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,19 +14,15 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  var _isLoading=false;
+  var _isLoading = false;
   final _auth = FirebaseAuth.instance;
-  void _submitAuthForm(
-    String email, 
-    String password, 
-    String userName,
-      bool isLogin, 
-      BuildContext ctx) async {
+  void _submitAuthForm(String email, String password, String userName,
+      File? image, bool isLogin, BuildContext ctx) async {
     UserCredential userCredential;
 
     try {
       setState(() {
-        _isLoading=true;
+        _isLoading = true;
       });
       if (isLogin) {
         userCredential = await _auth.signInWithEmailAndPassword(
@@ -33,10 +31,23 @@ class _AuthScreenState extends State<AuthScreen> {
         userCredential = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
 
-           await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-              'username': userName,
-              'email': email
-            });
+        if (image != null) {
+          final ref = FirebaseStorage.instance
+              .ref()
+              .child('user_image')
+              .child(FirebaseAuth.instance.currentUser!.uid + '.jpg');
+          final uploadTask = ref.putFile(image);
+          await uploadTask.whenComplete(() {});
+          final url = await ref.getDownloadURL();
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .set({
+            'username': userName,
+            'email': email,
+            'image_url': url,
+          });
+        }
       }
     } on PlatformException catch (err) {
       var message = 'An error Occured, check your Credentials!';
@@ -49,7 +60,7 @@ class _AuthScreenState extends State<AuthScreen> {
         backgroundColor: Theme.of(context).colorScheme.error,
       ));
       setState(() {
-        _isLoading=false;
+        _isLoading = false;
       });
     } catch (err) {
       print(err);
@@ -63,6 +74,6 @@ class _AuthScreenState extends State<AuthScreen> {
         body: AuthForm(
           _submitAuthForm,
           _isLoading,
-          ));
+        ));
   }
 }

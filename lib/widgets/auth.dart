@@ -1,13 +1,15 @@
+import 'dart:io';
 import 'package:chat_app/picker/image_picker.dart';
 import 'package:flutter/material.dart';
 
 class AuthForm extends StatefulWidget {
-  AuthForm(this.submitFn,this.isLoading);
+  AuthForm(this.submitFn, this.isLoading);
   final bool isLoading;
   final void Function(
     String email,
     String password,
     String userName,
+    File? image,
     bool isLogin,
     BuildContext ctx,
   ) submitFn;
@@ -22,15 +24,26 @@ class _AuthFormState extends State<AuthForm> {
   var _userEmail = '';
   var _username = '';
   var _userPassword = '';
+  File? _userImageFile;
+
+  void _pickedImage(File? image) {
+    _userImageFile = image;
+  }
 
   void _trySubmit() {
     final isValid = _formKey.currentState?.validate();
     FocusScope.of(context).unfocus();
-
+    if (_userImageFile == null && !_islogin) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Please pick an Image'),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ));
+      return;
+    }
     if (isValid!) {
       _formKey.currentState!.save();
       widget.submitFn(_userEmail.trim(), _userPassword.trim(), _username.trim(),
-          _islogin, context);
+          _userImageFile, _islogin, context);
     }
   }
 
@@ -47,9 +60,11 @@ class _AuthFormState extends State<AuthForm> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  if(!_islogin) UserImagePicker(),
+                  if (!_islogin) UserImagePicker(_pickedImage),
                   TextFormField(
                     key: const ValueKey('Email'),
+                    autocorrect: false,
+                    textCapitalization: TextCapitalization.none,
                     validator: (value) {
                       if (value!.isEmpty || !value.contains('@kiet.edu')) {
                         return 'Please Enter a valid KIET ID';
@@ -67,6 +82,8 @@ class _AuthFormState extends State<AuthForm> {
                   if (!_islogin)
                     TextFormField(
                       key: const ValueKey('Username'),
+                      autocorrect: true,
+                      textCapitalization: TextCapitalization.words,
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Please enter a username';
@@ -94,21 +111,21 @@ class _AuthFormState extends State<AuthForm> {
                   const SizedBox(
                     height: 12,
                   ),
-                  if(widget.isLoading) CircularProgressIndicator(),
-                  if(!widget.isLoading)
-                  ElevatedButton(
-                      onPressed: _trySubmit,
-                      child: Text(_islogin ? 'Login' : 'SignUp')),
-                      if(!widget.isLoading)
-                  TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _islogin = !_islogin;
-                        });
-                      },
-                      child: Text(_islogin
-                          ? 'Create New Account'
-                          : 'Already have an account'))
+                  if (widget.isLoading) const CircularProgressIndicator(),
+                  if (!widget.isLoading)
+                    ElevatedButton(
+                        onPressed: _trySubmit,
+                        child: Text(_islogin ? 'Login' : 'SignUp')),
+                  if (!widget.isLoading)
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _islogin = !_islogin;
+                          });
+                        },
+                        child: Text(_islogin
+                            ? 'Create New Account'
+                            : 'Already have an account'))
                 ],
               ),
             ),

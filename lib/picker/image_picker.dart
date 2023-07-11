@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class UserImagePicker extends StatefulWidget {
-  const UserImagePicker({Key? key}) : super(key: key);
+  UserImagePicker(this.imagePickFn);
+
+  final void Function(File pickedImage) imagePickFn;
 
   @override
   _UserImagePickerState createState() => _UserImagePickerState();
@@ -15,12 +16,17 @@ class _UserImagePickerState extends State<UserImagePicker> {
 
   void _pickImage() async {
     final picker = ImagePicker();
-    XFile? pickedImage = await picker.pickImage(source: ImageSource.camera);
+    XFile? pickedImage = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+      maxWidth: 150,
+    );
     if (pickedImage != null) {
       final pickedImageFile = File(pickedImage.path);
       setState(() {
         _pickedImage = pickedImageFile;
       });
+      widget.imagePickFn(pickedImageFile);
     }
   }
 
@@ -31,7 +37,8 @@ class _UserImagePickerState extends State<UserImagePicker> {
         CircleAvatar(
           radius: 50,
           backgroundColor: Colors.grey,
-          backgroundImage: _pickedImage != null ? FileImage(_pickedImage!) : null,
+          backgroundImage:
+              _pickedImage != null ? FileImage(_pickedImage!) : null,
         ),
         TextButton.icon(
           onPressed: _pickImage,

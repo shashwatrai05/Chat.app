@@ -10,44 +10,53 @@ class NewMessage extends StatefulWidget {
 }
 
 class _NewMessageState extends State<NewMessage> {
-  final _controller= new TextEditingController();
+  final _controller = new TextEditingController();
   var _enteredMessage = '';
 
-  void _sendMessage() async{
+  void _sendMessage() async {
     FocusScope.of(context).unfocus();
-    final user= await FirebaseAuth.instance.currentUser;
-    final userData= await FirebaseFirestore.instance.collection('users').doc(user?.uid).get();
+    final user = await FirebaseAuth.instance.currentUser;
+    final userData = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid)
+        .get();
     FirebaseFirestore.instance.collection('chat').add({
       'text': _enteredMessage,
       'createdAt': Timestamp.now(),
       'userId': user?.uid,
-      'username': userData['username']
+      'username': userData['username'],
+      'userImage': userData['image_url']
     });
     _controller.clear();
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top:8),
+      margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(8),
       child: Row(
         children: <Widget>[
           Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: const InputDecoration(labelText: 'Send a message...') ,
-              onChanged: (value){
-                setState(() {
-  _enteredMessage=value;
-});
-
-              },
-
-            )),
-            IconButton(onPressed: _enteredMessage.trim().isEmpty? null : (){
-              _sendMessage();
-            }, 
-            icon: const Icon(Icons.send))
+              child: TextField(
+            controller: _controller,
+            textCapitalization: TextCapitalization.sentences,
+            autocorrect: true,
+            enableSuggestions: true,
+            decoration: const InputDecoration(labelText: 'Send a message...'),
+            onChanged: (value) {
+              setState(() {
+                _enteredMessage = value;
+              });
+            },
+          )),
+          IconButton(
+              onPressed: _enteredMessage.trim().isEmpty
+                  ? null
+                  : () {
+                      _sendMessage();
+                    },
+              icon: const Icon(Icons.send))
         ],
       ),
     );
