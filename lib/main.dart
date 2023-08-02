@@ -18,12 +18,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+       debugShowCheckedModeBanner: false,
       title: 'Flutter Chat',
       theme: ThemeData(
           primarySwatch: Colors.green,
           backgroundColor: Colors.greenAccent,
-          accentColor: Colors.blueAccent,
-          accentColorBrightness: Brightness.dark,
+          hintColor: Colors.blueAccent,
+          //accentColorBrightness: Brightness.dark,
           buttonTheme: ButtonTheme.of(context).copyWith(
               buttonColor: Colors.pink,
               textTheme: ButtonTextTheme.primary,
